@@ -11,8 +11,7 @@ function runSearch() {
 
   // TODO: Build your query by combining the bing_api_endpoint and a query attribute
   //  named 'q' that takes the value from the search bar input field.
-  let query = document.querySelector('.search input').value;
-  let url = `${bing_api_endpoint}?q=${query}&count=10`;
+  let query = `${bing_api_endpoint}?q=${document.querySelector('.search input').value}&count=10`;
 
   let request = new XMLHttpRequest();
 
@@ -29,35 +28,31 @@ function runSearch() {
   //   - HINT: You'll need to ad even listeners to them after you add them to the DOM
   //
   // request.setRequestHeader("Ocp-Apim-Subscription-Key", bing_api_key);
-  request.open('GET', url);
+  request.open('GET', query);
   request.setRequestHeader('Ocp-Apim-Subscription-Key', bing_api_key);
 
   request.onload = function() {
     let data = JSON.parse(this.responseText);
-    let images = data.value;
-    images.forEach(image => {
+    let imgs = data.value;
+    imgs.forEach(image => {
       let img = document.createElement('img');
-      img.src = image.thumbnailUrl;
-
       img.onclick = function() {
         let img = document.createElement('img');
         img.src = image.contentUrl;
         document.querySelector('#board').appendChild(img);
       }
-
+      img.src = image.thumbnailUrl;
       document.querySelector('#resultsImageContainer').appendChild(img);
     });
     
-    let related = data.relatedSearches.slice(0, 5); // 5 related searches
-    related.forEach(term => {
+    let suggested = data.relatedSearches.slice(0, 5); // display 5 suggested searches
+    suggested.forEach(term => {
         let div = document.createElement('li');
-        div.innerText = term.text;
-
         div.onclick = function() {
           document.querySelector('.search input').value = term.text;
           runSearch();
         }
-
+        div.innerText = term.text;
         document.querySelector('.suggestions ul').appendChild(div);
     })
   }
