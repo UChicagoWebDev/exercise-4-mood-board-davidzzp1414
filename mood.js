@@ -4,11 +4,15 @@ const bing_api_key = BING_API_KEY
 function runSearch() {
 
   // TODO: Clear the results pane before you run a new search
+  document.querySelector('#resultsImageContainer').innerHTML = '';
+  document.querySelector('.suggestions ul').innerHTML = '';
 
   openResultsPane();
 
   // TODO: Build your query by combining the bing_api_endpoint and a query attribute
   //  named 'q' that takes the value from the search bar input field.
+  let query = document.querySelector('.search input').value;
+  let url = `${bing_api_endpoint}?q=${query}&count=10`;
 
   let request = new XMLHttpRequest();
 
@@ -25,8 +29,41 @@ function runSearch() {
   //   - HINT: You'll need to ad even listeners to them after you add them to the DOM
   //
   // request.setRequestHeader("Ocp-Apim-Subscription-Key", bing_api_key);
+  request.open('GET', url);
+  request.setRequestHeader('Ocp-Apim-Subscription-Key', bing_api_key);
+
+  request.onload = function() {
+    let data = JSON.parse(this.responseText);
+    let images = data.value;
+    images.forEach(image => {
+      let img = document.createElement('img');
+      img.src = image.thumbnailUrl;
+
+      img.onclick = function() {
+        let img = document.createElement('img');
+        img.src = image.contentUrl;
+        document.querySelector('#board').appendChild(img);
+      }
+
+      document.querySelector('#resultsImageContainer').appendChild(img);
+    });
+    
+    let related = data.relatedSearches.slice(0, 5); // 5 related searches
+    related.forEach(term => {
+        let div = document.createElement('li');
+        div.innerText = term.text;
+
+        div.onclick = function() {
+          document.querySelector('.search input').value = term.text;
+          runSearch();
+        }
+
+        document.querySelector('.suggestions ul').appendChild(div);
+    })
+  }
 
   // TODO: Send the request
+  request.send();
 
   return false;  // Keep this; it keeps the browser from sending the event
                   // further up the DOM chain. Here, we don't want to trigger
